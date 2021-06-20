@@ -1,0 +1,29 @@
+using System.Net.Http;
+using System.Threading.Tasks;
+using Workday.Wws.{{this.name}};
+
+namespace Workday.Wws
+{
+    /// <summary>
+    /// {{this.documentation_as_cs_xml_doc_comment}}
+    /// </summary>
+    public interface I{{this.name}}Client
+    {
+        {{for oper in this.operations}}
+        /// <summary>
+        /// {{oper.documentation_as_cs_xml_doc_comment}}
+        /// </summary>
+        {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request);
+        {{end}}
+    }
+
+    public class {{this.name}}Client : WwsClient, I{{this.name}}Client
+    {
+        public {{this.name}}Client(Config config, HttpClient client) : base(config, client) { }
+
+        {{for oper in this.operations}}
+        public {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request) =>
+            base.{{oper.method}}(request);
+        {{end}}
+    }
+}
