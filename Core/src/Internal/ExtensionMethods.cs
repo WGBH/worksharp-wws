@@ -2,7 +2,7 @@ using System;
 using System.Xml.Linq;
 using Xml.Schema.Linq;
 
-namespace Workday.Wws.Internal
+namespace WorkSharp.Wws.Internal
 {
     static class XElementExtensions
     {

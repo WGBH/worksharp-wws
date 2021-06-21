@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Workday.Wws.Internal;
+using WorkSharp.Wws.Internal;
 using Xml.Schema.Linq;
 
-using static Workday.Wws.Internal.XHelper;
+using static WorkSharp.Wws.Internal.XHelper;
 
-namespace Workday.Wws
+namespace WorkSharp.Wws
 {
     [DebuggerStepThrough]
     public static class WwsReference<T> where T : XTypedElement

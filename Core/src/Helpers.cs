@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace Workday.Wws
+namespace WorkSharp.Wws
  {
     public class WwsException : Exception
     {
@@ -12,7 +12,7 @@ namespace Workday.Wws
         internal WwsException(XDocument WwsResponse)
         {
             Message = WwsResponse.Descendants("faultstring").FirstOrDefault()?.Value
-                ?? "A workday web service exception occurred";
+                ?? "A Workday Web Services exception occurred";
         }
     }
 

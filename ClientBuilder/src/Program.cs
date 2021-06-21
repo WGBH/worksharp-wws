@@ -6,9 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Scriban;
-using static Workday.Wws.Builder.XHelper;
+using static WorkSharp.Wws.Builder.XHelper;
 
-namespace Workday.Wws.Builder
+namespace WorkSharp.Wws.Builder
 {
     record Operation(string Name, string Documentation, string RequestType, string ResponseType)
     {

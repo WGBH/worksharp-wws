@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using Workday.Wws.{{this.name}};
+using WorkSharp.Wws.{{this.name}};
 
-namespace Workday.Wws
+namespace WorkSharp.Wws
 {
     /// <summary>
     /// {{this.documentation_as_cs_xml_doc_comment}}

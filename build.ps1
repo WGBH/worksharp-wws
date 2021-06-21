@@ -9,7 +9,7 @@ dotnet tool restore
 
 $ProgressPreference = 'SilentlyContinue'
 
-$root = "Workday.Wws"
+$root = "WorkSharp.Wws"
 $core = "$root.Core"
 
 Set-Location $PSScriptRoot/Core

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Xml.Linq;
 
-namespace Workday.Wws.Internal
+namespace WorkSharp.Wws.Internal
 {
     [DebuggerStepThrough]
     static class XHelper

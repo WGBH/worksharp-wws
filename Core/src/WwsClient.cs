@@ -6,12 +6,12 @@ using System.Net.Mime;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Workday.Wws.Internal;
+using WorkSharp.Wws.Internal;
 using Xml.Schema.Linq;
 
-using static Workday.Wws.Internal.XHelper;
+using static WorkSharp.Wws.Internal.XHelper;
 
-namespace Workday.Wws
+namespace WorkSharp.Wws
 {
     public abstract class WwsClient
     {
