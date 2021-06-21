@@ -2,6 +2,7 @@
 
 param (
     [switch]$SkipComponentIfAlreadyPacked,
+    [int]$WarningLevel = 4,
     [string]$PushTo
 )
 
@@ -78,7 +79,7 @@ foreach($endpoint in $endpoints) {
     dotnet run -c Release -p $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
     if(!$?) { exit 1 }
 
-    dotnet pack -c Release -p:Version=$version -o $PSScriptRoot/out
+    dotnet pack -c Release -p:Version=$version -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
     if ($PushTo -ne '') {
