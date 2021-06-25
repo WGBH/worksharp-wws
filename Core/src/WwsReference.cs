@@ -1,4 +1,7 @@
+using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
 using WorkSharp.Wws.Internal;
 using Xml.Schema.Linq;
 
@@ -35,6 +38,37 @@ namespace WorkSharp.Wws
             );
 
             return xml.ConvertTo<T>();
+        }
+    }
+
+    public static class WwsReferenceExtensions
+    {
+        public static string IdOfType(this XTypedElement el, string idType)
+        {
+            var id = el.IdOfTypeOrNull(idType);
+
+            if (!string.IsNullOrEmpty(id))
+                return id;
+
+            var ns = WwsDefaults.Namespace;
+            var idTypes = String.Join(", ", ((XElement)el)
+                .Elements(ns + "ID")
+                .Select(i => i.Attr(ns + "type")));
+
+            var msg = $"No integration ID of type {idType} could be found!";
+            if (!String.IsNullOrWhiteSpace(idTypes))
+                msg += $" Available integration ID types: {idTypes}.";
+
+            throw new InvalidOperationException(msg);
+        }
+
+        public static string IdOfTypeOrNull(this XTypedElement el, string idType)
+        {
+            var ns = WwsDefaults.Namespace;
+            return ((XElement)el)
+                .Elements(ns + "ID")
+                .SingleOrDefault(e => e.Attr(ns + "type") == idType)
+                ?.Value;
         }
     }
 }
