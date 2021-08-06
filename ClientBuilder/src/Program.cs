@@ -10,8 +10,21 @@ using static WorkSharp.Wws.Builder.XHelper;
 
 namespace WorkSharp.Wws.Builder
 {
-    record Operation(string Name, string Documentation, string RequestType, string ResponseType)
+    class Operation
     {
+        public string Name { get; }
+        public string Documentation { get; }
+        public string RequestType { get; }
+        public string? ResponseType { get; }
+
+        public Operation(string name, string documentation, string requestType, string? responseType)
+        {
+            Name = name;
+            Documentation = documentation;
+            RequestType = requestType;
+            ResponseType = responseType;
+        }
+
         public string DocumentationAsCsXmlDocComment => Documentation.Replace("\n", "\n///");
         public string NameSafe => Name.Replace("-", "");
         public string RequestTypeSafe => RequestType.Replace("-", "");
@@ -21,8 +34,20 @@ namespace WorkSharp.Wws.Builder
             ResponseType == null? "ExecuteAsync" : "ExecuteAsync<" + ResponseType.Replace("-", "") +">";
     }
 
-    record Endpoint(string Name, string Documentation, IReadOnlyList<Operation> Operations)
+    class Endpoint
     {
+        public string Name { get; }
+        public string Version { get; }
+        public string Documentation { get; }
+        public IReadOnlyList<Operation> Operations { get; }
+
+        public Endpoint(string name, string documentation, IReadOnlyList<Operation> operations)
+        {
+            Name = name;
+            Documentation = documentation;
+            Operations = operations;
+        }
+
         public string DocumentationAsCsXmlDocComment => Documentation.Replace("\n", "\n///");
     }
 
