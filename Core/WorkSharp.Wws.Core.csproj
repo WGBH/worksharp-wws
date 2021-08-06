@@ -19,6 +19,19 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
+
+    <Product>WorkSharp - Workday Web Services Core</Product>
+    <Title>$(Product)</Title>
+    <Description>
+      Provides common classes for the WorkSharp WWS endpoint packages.
+    </Description>
+    <Authors>Samuel Justin Gabay</Authors>
+    <Company>WGBH Educational Foundation</Company>
+    <Copyright>Copyright 2021 WGBH Educational Foundation</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/WGBH/worksharp-wws</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>Workday Web Services WWS</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +41,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
+    <None Include="../icon.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

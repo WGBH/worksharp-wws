@@ -65,7 +65,7 @@ foreach($endpoint in $endpoints) {
     dotnet run -c Release --project $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
     if(!$?) { exit 1 }
 
-    dotnet pack -c Release -p:Version=$WwsVersion -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
+    dotnet pack -c Release -p:Version=$WwsVersion -p:Endpoint=$endpoint -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
     if ($PushTo -ne '') {

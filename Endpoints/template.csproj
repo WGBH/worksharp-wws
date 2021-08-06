@@ -7,9 +7,26 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
+
+    <Product>WorkSharp - Workday Web Services: $(Endpoint)</Product>
+    <Title>$(Product)</Title>
+    <Description>
+      Provides a client for interacting with the $(Endpoint) Web Service.
+      Strongly-typed classes using LinqToXsd aid in compsosing requests
+      and consuming responses.
+    </Description>
+    <Authors>Samuel Justin Gabay</Authors>
+    <Company>WGBH Educational Foundation</Company>
+    <Copyright>Copyright 2021 WGBH Educational Foundation</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/WGBH/worksharp-wws</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>Workday Web Services WWS</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../../Core/WorkSharp.Wws.Core.csproj" />
+
+    <None Include="../../../icon.png" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>
