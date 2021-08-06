@@ -10,9 +10,9 @@ using static WorkSharp.Wws.Internal.XHelper;
 namespace WorkSharp.Wws
 {
     [DebuggerStepThrough]
-    public static class WwsReference<T> where T : XTypedElement
+    public static class WwsReference
     {
-        public static T From(string type, string value)
+        public static T Create<T>(string type, string value) where T : XTypedElement
         {
             var ns = WwsDefaults.Namespace;
             var xml = El("ref",
@@ -25,7 +25,7 @@ namespace WorkSharp.Wws
             return xml.ConvertTo<T>();
         }
 
-        public static T From(string parentType, string parentValue, string type, string value)
+        public static T Create<T>(string parentType, string parentValue, string type, string value) where T : XTypedElement
         {
             var ns = WwsDefaults.Namespace;
             var xml = El("ref",
