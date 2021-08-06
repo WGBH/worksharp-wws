@@ -1,5 +1,8 @@
 #!/usr/bin/env pwsh
 
+# Copyright 2021 WGBH Educational Foundation
+# Licensed under the Apache License, Version 2.0
+
 param (
     [Parameter(Mandatory = $true)]
     [string]$WwsVersion,
