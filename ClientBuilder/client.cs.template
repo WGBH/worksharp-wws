@@ -19,7 +19,10 @@ namespace WorkSharp.Wws
 
     public class {{this.name}}Client : WwsClient, I{{this.name}}Client
     {
-        public {{this.name}}Client(Config config, HttpClient client) : base(config, client) { }
+        const string Version = "{{this.version}}";
+
+        public {{this.name}}Client(Configuration configuration, HttpClient client)
+            : base(Version, configuration, client) { }
 
         {{for oper in this.operations}}
         public {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request) =>

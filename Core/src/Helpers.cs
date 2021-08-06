@@ -19,9 +19,5 @@ namespace WorkSharp.Wws
     public static class WwsDefaults
     {
         public static readonly XNamespace Namespace = "urn:com.workday/bsvc";
-        public static readonly string Version = "v" +
-            Assembly.GetExecutingAssembly()
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                .InformationalVersion;
     }
 }

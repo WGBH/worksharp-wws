@@ -41,9 +41,10 @@ namespace WorkSharp.Wws.Builder
         public string Documentation { get; }
         public IReadOnlyList<Operation> Operations { get; }
 
-        public Endpoint(string name, string documentation, IReadOnlyList<Operation> operations)
+        public Endpoint(string name, string version, string documentation, IReadOnlyList<Operation> operations)
         {
             Name = name;
+            Version = version;
             Documentation = documentation;
             Operations = operations;
         }
@@ -75,10 +76,17 @@ namespace WorkSharp.Wws.Builder
 
             var xml = await XDocument.LoadAsync(file, default, default);
 
+            var xsd = Ns("http://www.w3.org/2001/XMLSchema");
+            var wd = Ns("urn:com.workday/bsvc");
             var wsdl = Ns("http://schemas.xmlsoap.org/wsdl/");
 
             var endpointName = xml.Root.Attr("name");
             var endpointDoc = xml.Root.El(wsdl + "documentation").Value;
+            var endpointVersion = xml.Root
+                .El(wsdl + "types").El(xsd + "schema")
+                .Elements(xsd + "attribute")
+                .Single(a => a.Attr("name") == "version")
+                .Attr(wd + "fixed");
 
             var operationsXml = xml.Root.El(wsdl + "portType").Elements(wsdl + "operation");
             var messagesXml = xml.Root.Elements(wsdl + "message");
@@ -107,7 +115,7 @@ namespace WorkSharp.Wws.Builder
                 operations.Add(new Operation(operName, operDoc, requestType, responseType));
             }
 
-            return new Endpoint(endpointName, endpointDoc, operations.ToImmutableList());
+            return new Endpoint(endpointName, endpointVersion, endpointDoc, operations.ToImmutableList());
         }
 
         static async Task<Template> GetTemplateAsync()

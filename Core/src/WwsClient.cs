@@ -15,22 +15,24 @@ namespace WorkSharp.Wws
 {
     public abstract class WwsClient
     {
-        public class Config
+        public class Configuration
         {
-            public string Host { get; set; }
-            public string UserName { get; set; }
-            public string Tenant { get; set; }
-            public string Password { get; set; }
+            public string? Host { get; set; }
+            public string? UserName { get; set; }
+            public string? Tenant { get; set; }
+            public string? Password { get; set; }
         }
 
         static readonly XNamespace Env = "http://schemas.xmlsoap.org/soap/envelope/";
         static readonly XNamespace Sec = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
-        readonly Config _config;
+        readonly string _version;
+        readonly Configuration _config;
         readonly HttpClient _client;
 
-        protected WwsClient(Config config, HttpClient client)
+        protected WwsClient(string version, Configuration config, HttpClient client)
         {
+            _version = version;
             _config = config;
 
             client.BaseAddress = new Uri($"https://{config.Host}/ccx/service/{config.Tenant}/");
@@ -60,7 +62,7 @@ namespace WorkSharp.Wws
                         El(Sec + "Security",
                             El(Sec + "UsernameToken",
                                 El(Sec + "Username", _config.UserName + "@" + _config.Tenant),
-                                El(Sec + "Password", _config.Password)
+                                El(Sec + "Password", _config.Password!)
                             )
                         ),
                         El(WwsDefaults.Namespace + "Workday_Common_Header",
@@ -82,7 +84,7 @@ namespace WorkSharp.Wws
                 writer.Flush();
                 reqStream.Position = 0;
 
-                res = await _client.PostAsync(endpoint + "/" + WwsDefaults.Version, new StreamContent(reqStream));
+                res = await _client.PostAsync(endpoint + "/" + _version, new StreamContent(reqStream));
             }
 
             if (res.Content.Headers.ContentType.MediaType == MediaTypeNames.Text.Xml)

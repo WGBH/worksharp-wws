@@ -62,7 +62,7 @@ namespace WorkSharp.Wws
             throw new InvalidOperationException(msg);
         }
 
-        public static string IdOfTypeOrNull(this XTypedElement el, string idType)
+        public static string? IdOfTypeOrNull(this XTypedElement el, string idType)
         {
             var ns = WwsDefaults.Namespace;
             return ((XElement)el)

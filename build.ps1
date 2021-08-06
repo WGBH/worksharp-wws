@@ -1,6 +1,8 @@
 #!/usr/bin/env pwsh
 
 param (
+    [Parameter(Mandatory = $true)]
+    [string]$WwsVersion,
     [switch]$SkipComponentIfAlreadyPacked,
     [int]$WarningLevel = 4,
     [string]$PushTo
@@ -11,25 +13,6 @@ dotnet tool restore
 $ProgressPreference = 'SilentlyContinue'
 
 $root = "WorkSharp.Wws"
-$core = "$root.Core"
-
-Set-Location $PSScriptRoot/Core
-
-$version = ([xml](Get-Content "$core.csproj")).Project.PropertyGroup.Version
-
-if((Test-Path "$PSScriptRoot/out/$core.$version*") -and $SkipComponentIfAlreadyPacked) {
-    "Skipping Core..."
-} else {
-    "Building Core..."
-
-    dotnet pack -c Release -o $PSScriptRoot/out
-    if(!$?) { exit 1 }
-
-    if ($PushTo -ne '') {
-        dotnet nuget push "$PSScriptRoot/out/$core.$version*" -s GBH
-        if(!$?) { exit 1 }
-    }
-}
 
 Set-Location $PSScriptRoot/Endpoints
 
@@ -53,7 +36,7 @@ $template = @"
 foreach($endpoint in $endpoints) {
     $package = "$root.Endpoints.$endpoint"
 
-    if((Test-Path "$PSScriptRoot/out/$package.$version*") -and $SkipComponentIfAlreadyPacked) {
+    if((Test-Path "$PSScriptRoot/out/$package.$WwsVersion*") -and $SkipComponentIfAlreadyPacked) {
         "Skipping $endpoint..."
         continue
     }
@@ -63,27 +46,27 @@ foreach($endpoint in $endpoints) {
     Set-Location $endpoint
     Copy-Item $PSScriptRoot/Endpoints/template.csproj "$package.csproj"
 
-    "Generating package for $endpoint version $version..."
+    "Generating package for $endpoint version $WwsVersion..."
     $template -f $endpoint > "$endpoint.xsd.config"
 
-    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$version/$endpoint.xsd" `
+    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$WwsVersion/$endpoint.xsd" `
         -OutFile "$endpoint.xsd"
     if(!$?) { exit 1 }
     dotnet LinqToXsd gen "$endpoint.xsd" `
         --Config "$endpoint.xsd.config"
     if(!$?) { exit 1 }
 
-    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$version/$endpoint.wsdl" `
+    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$WwsVersion/$endpoint.wsdl" `
         -OutFile "$endpoint.wsdl"
     if(!$?) { exit 1 }
-    dotnet run -c Release -p $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
+    dotnet run -c Release --project $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
     if(!$?) { exit 1 }
 
-    dotnet pack -c Release -p:Version=$version -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
+    dotnet pack -c Release -p:Version=$WwsVersion -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
     if ($PushTo -ne '') {
-        dotnet nuget push "$PSScriptRoot/out/$package.$version*" -s $PushTo
+        dotnet nuget push "$PSScriptRoot/out/$package.$WwsVersion*" -s $PushTo
         if(!$?) { exit 1 }
     }
 }
