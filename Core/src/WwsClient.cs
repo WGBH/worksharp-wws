@@ -13,7 +13,7 @@ using static WorkSharp.Wws.Internal.XHelper;
 
 namespace WorkSharp.Wws
 {
-    public abstract class WwsClient
+    public abstract class WwsClient : IDisposable
     {
         public class Configuration
         {
@@ -21,6 +21,14 @@ namespace WorkSharp.Wws
             public string? UserName { get; set; }
             public string? Tenant { get; set; }
             public string? Password { get; set; }
+
+            internal void Validate()
+            {
+                ValidationHelper.EnsureNonNull(nameof(Host), Host);
+                ValidationHelper.EnsureNonNull(nameof(UserName), UserName);
+                ValidationHelper.EnsureNonNull(nameof(Tenant), Tenant);
+                ValidationHelper.EnsureNonNull(nameof(Password), Password);
+            }
         }
 
         static readonly XNamespace Env = "http://schemas.xmlsoap.org/soap/envelope/";
@@ -30,13 +38,15 @@ namespace WorkSharp.Wws
         readonly Configuration _config;
         readonly HttpClient _client;
 
-        protected WwsClient(string version, Configuration config, HttpClient client)
+        protected WwsClient(string version, Configuration config, HttpClient? client)
         {
             _version = version;
+
+            config.Validate();
             _config = config;
 
-            client.BaseAddress = new Uri($"https://{config.Host}/ccx/service/{config.Tenant}/");
-            _client = client;
+            _client = client ?? new HttpClient();
+            _client.BaseAddress = new Uri($"https://{config.Host}/ccx/service/{config.Tenant}/");
         }
 
         protected async Task<T> ExecuteAsync<T>(XTypedElement request) where T: XTypedElement =>
@@ -103,5 +113,8 @@ namespace WorkSharp.Wws
             throw new InvalidOperationException("Unexpected WWS Response Content-Type: "
                 + res.Content.Headers.ContentType);
         }
+
+        public void Dispose() =>
+            _client.Dispose();
     }
 }

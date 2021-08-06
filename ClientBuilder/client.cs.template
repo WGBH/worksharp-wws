@@ -21,7 +21,7 @@ namespace WorkSharp.Wws
     {
         const string Version = "{{this.version}}";
 
-        public {{this.name}}Client(Configuration configuration, HttpClient client)
+        public {{this.name}}Client(Configuration configuration, HttpClient client = null)
             : base(Version, configuration, client) { }
 
         {{for oper in this.operations}}
