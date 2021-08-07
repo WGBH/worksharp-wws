@@ -11,9 +11,7 @@
     <Product>WorkSharp - Workday Web Services: $(Endpoint)</Product>
     <Title>$(Product)</Title>
     <Description>
-      Provides a client for interacting with the $(Endpoint) Web Service.
-      Strongly-typed classes using LinqToXsd aid in compsosing requests
-      and consuming responses.
+      Provides a client for interacting with the Workday $(Endpoint) Web Service. Strongly-typed classes using LinqToXsd aid in compsosing requests and consuming responses.
     </Description>
     <Authors>Samuel Justin Gabay</Authors>
     <Company>WGBH Educational Foundation</Company>

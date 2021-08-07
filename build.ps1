@@ -6,16 +6,43 @@
 param (
     [Parameter(Mandatory = $true)]
     [string]$WwsVersion,
-    [switch]$SkipComponentIfAlreadyPacked,
+    [switch]$SkipComponentIfAlreadyPushed,
     [int]$WarningLevel = 4,
-    [string]$PushTo
+    [string]$PushTo,
+    [string]$ApiKey
 )
-
-dotnet tool restore
 
 $ProgressPreference = 'SilentlyContinue'
 
-$root = "WorkSharp.Wws"
+if ($WwsVersion -notmatch '^\d+.\d+$') {
+    Write-Error 'WwsVersion is not of the correct format!'
+    exit 1
+}
+
+$packageVersion = $WwsVersion + '.0'
+$root = 'WorkSharp.Wws'
+
+$template = @"
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration xmlns="http://www.microsoft.com/xml/schema/linq">
+  <Namespaces>
+    <Namespace Schema="urn:com.workday/bsvc" Clr="$root.{0}" />
+  </Namespaces>
+</Configuration>
+"@
+
+if($PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+    $dotnetNugetOutputLines = dotnet nuget list source
+    $indexInOuput = 1 + $dotnetNugetOutputLines.IndexOf(
+        $dotnetNugetOutputLines.Where({ $_ -like "* $PushTo *" }))
+    $serviceIndexUri = $dotnetNugetOutputLines[$indexInOuput].Trim()
+
+    $packageBaseUri = (Irm $serviceIndexUri).resources.Where(
+        {$_.'@type' -eq 'PackageBaseAddress/3.0.0'} ).'@id'
+    if(!$?) { exit 1 }
+}
+
+dotnet tool restore
 
 Set-Location $PSScriptRoot/Endpoints
 
@@ -27,50 +54,75 @@ if(Test-Path build) {
     New-Item -ItemType Directory build > $null
 }
 
-$template = @"
-<?xml version="1.0" encoding="utf-8"?>
-<Configuration xmlns="http://www.microsoft.com/xml/schema/linq">
-  <Namespaces>
-    <Namespace Schema="urn:com.workday/bsvc" Clr="$root.{0}" />
-  </Namespaces>
-</Configuration>
-"@
-
 foreach($endpoint in $endpoints) {
-    $package = "$root.Endpoints.$endpoint"
+    $packageName = "$root.Endpoints.$endpoint"
 
-    if((Test-Path "$PSScriptRoot/out/$package.$WwsVersion*") -and $SkipComponentIfAlreadyPacked) {
-        "Skipping $endpoint..."
+    if($PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+        $packageLower = $packageName.ToLower()
+
+        $packageUri = "$packageBaseUri$packageLower/$packageVersion/$packageLower.nuspec"
+        Invoke-RestMethod -Method HEAD $packageUri `
+            -SkipHttpErrorCheck -StatusCodeVariable packageLookupStatus > $null
+        if(!$?) { exit 1 }
+
+        if ($packageLookupStatus -eq 200) {
+            "Skipping $endpoint version $WwsVersion..."
+            continue
+        }
+    }
+
+    $baseEndpointInfoUri = 'https://community.workday.com/sites/default/files/file-hosting/productionapi/' `
+        + "$endpoint/v$WwsVersion/$endpoint"
+    Invoke-RestMethod -Method HEAD "$baseEndpointInfoUri.xsd" `
+        -SkipHttpErrorCheck -StatusCodeVariable xsdLookupStatus > $null
+    if ($xsdLookupStatus -eq 404) {
+        Write-Warning "Endpoint $endpoint does not exist for WWS version $WwsVersion."
         continue
     }
 
+    "Generating package for $endpoint version $WwsVersion..."
     Set-Location $PSScriptRoot/Endpoints/build
     New-Item -ItemType Directory $endpoint > $null
     Set-Location $endpoint
-    Copy-Item $PSScriptRoot/Endpoints/template.csproj "$package.csproj"
+    Copy-Item $PSScriptRoot/Endpoints/template.csproj "$packageName.csproj"
 
-    "Generating package for $endpoint version $WwsVersion..."
     $template -f $endpoint > "$endpoint.xsd.config"
 
-    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$WwsVersion/$endpoint.xsd" `
-        -OutFile "$endpoint.xsd"
+    Invoke-WebRequest "$baseEndpointInfoUri.xsd" -OutFile "$endpoint.xsd"
     if(!$?) { exit 1 }
     dotnet LinqToXsd gen "$endpoint.xsd" `
         --Config "$endpoint.xsd.config"
     if(!$?) { exit 1 }
 
-    Invoke-WebRequest "https://community.workday.com/sites/default/files/file-hosting/productionapi/$endpoint/v$WwsVersion/$endpoint.wsdl" `
-        -OutFile "$endpoint.wsdl"
+    Invoke-WebRequest "$baseEndpointInfoUri.wsdl" -OutFile "$endpoint.wsdl"
     if(!$?) { exit 1 }
     dotnet run -c Release --project $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
     if(!$?) { exit 1 }
 
-    dotnet pack -c Release -p:Version=$WwsVersion -p:Endpoint=$endpoint -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
+    dotnet pack -c Release -p:Version=$WwsVersion -p:Endpoint=$endpoint `
+        -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
     if ($PushTo -ne '') {
-        dotnet nuget push "$PSScriptRoot/out/$package.$WwsVersion*" -s $PushTo
-        if(!$?) { exit 1 }
+        $package = "$PSScriptRoot/out/$packageName.$packageVersion.nupkg"
+
+        if ($ApiKey -ne '') {
+            $pushOutput = dotnet nuget push $package `
+                --source $PushTo --api-key $ApiKey --skip-duplicate | Join-String -Separator "`n"
+        } else {
+            $pushOutput = dotnet nuget push $package `
+                --source $PushTo --skip-duplicate | Join-String -Separator "`n"
+        }
+
+        $pushResult = $?
+
+        if($pushOutput -like "*$package*already exists*" ) {
+            Write-Warning $pushOutput
+        } else {
+            $pushOutput
+        }
+
+        if (!$pushResult) { exit 1 }
     }
 }
 
