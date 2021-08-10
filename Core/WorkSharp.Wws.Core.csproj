@@ -9,11 +9,7 @@
     <Description>
       Provides common classes for the WorkSharp WWS endpoint packages.
     </Description>
-    <Version>$(PackageVersion)</Version>
-    <!-- HACK it appears we need to define PackageVersion here,
-         so the dependant auto-generated endpoint packages
-         will grab the correct version -->
-    <PackageVersion>1.0.0</PackageVersion>
+    <Version>1.0.0</Version>
     <Authors>Samuel Justin Gabay</Authors>
     <Company>WGBH Educational Foundation</Company>
     <Copyright>Copyright 2021 WGBH Educational Foundation</Copyright>

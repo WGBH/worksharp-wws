@@ -6,6 +6,8 @@
 param (
     [Parameter(Mandatory = $true)]
     [string]$WwsVersion,
+    [Parameter(Mandatory = $true)]
+    [int]$PackagePatch,
     [switch]$SkipComponentIfAlreadyPushed,
     [int]$WarningLevel = 4,
     [string]$PushTo,
@@ -19,7 +21,12 @@ if ($WwsVersion -notmatch '^\d+.\d+$') {
     exit 1
 }
 
-$packageVersion = $WwsVersion + '.0'
+if ($PackagePatch -lt 0 -or $PackagePatch -gt 100) {
+    Write-Error 'PackagePatch is out of range!'
+    exit 1
+}
+
+$packageVersion = "$WwsVersion.$PackagePatch"
 $root = 'WorkSharp.Wws'
 
 $template = @"
@@ -90,8 +97,7 @@ foreach($endpoint in $endpoints) {
 
     Invoke-WebRequest "$baseEndpointInfoUri.xsd" -OutFile "$endpoint.xsd"
     if(!$?) { exit 1 }
-    dotnet LinqToXsd gen "$endpoint.xsd" `
-        --Config "$endpoint.xsd.config"
+    dotnet LinqToXsd gen "$endpoint.xsd" --Config "$endpoint.xsd.config"
     if(!$?) { exit 1 }
 
     Invoke-WebRequest "$baseEndpointInfoUri.wsdl" -OutFile "$endpoint.wsdl"
@@ -99,7 +105,7 @@ foreach($endpoint in $endpoints) {
     dotnet run -c Release --project $PSScriptRoot/ClientBuilder -- "$endpoint.wsdl"
     if(!$?) { exit 1 }
 
-    dotnet pack -c Release -p:Version=$WwsVersion -p:Endpoint=$endpoint `
+    dotnet pack -c Release -p:Version="$packageVersion" -p:Endpoint=$endpoint `
         -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 

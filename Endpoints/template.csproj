@@ -11,7 +11,7 @@
     <Product>WorkSharp - Workday Web Services: $(Endpoint)</Product>
     <Title>$(Product)</Title>
     <Description>
-      Provides a client for interacting with the Workday $(Endpoint) Web Service. Strongly-typed classes using LinqToXsd aid in compsosing requests and consuming responses.
+      Provides a client for interacting with the Workday $(Endpoint) Web Service. Strongly-typed classes using LinqToXsd aid in composing requests and consuming responses.
     </Description>
     <Authors>Samuel Justin Gabay</Authors>
     <Company>WGBH Educational Foundation</Company>
@@ -23,7 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../Core/WorkSharp.Wws.Core.csproj" />
+    <!-- HACK it appears we MUST reference Core using a package reference
+         instead of a project reference to ensure this assembly,
+         not just the package, references the correct version -->
+    <PackageReference Include="WorkSharp.Wws.Core" Version="1.0.0"/>
 
     <None Include="../../../icon.png" Pack="true" PackagePath=""/>
   </ItemGroup>
