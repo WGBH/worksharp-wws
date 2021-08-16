@@ -8,22 +8,40 @@ param (
     [string]$WwsVersion,
     [Parameter(Mandatory = $true)]
     [int]$PackagePatch,
-    [switch]$SkipComponentIfAlreadyPushed,
+    [string[]]$Endpoints,
     [int]$WarningLevel = 4,
     [string]$PushTo,
-    [string]$ApiKey
+    [switch]$SkipComponentIfAlreadyPushed,
+    [string]$ApiKey,
+    [switch]$LocalDryRun
 )
 
 $ProgressPreference = 'SilentlyContinue'
 
 if ($WwsVersion -notmatch '^\d+.\d+$') {
-    Write-Error 'WwsVersion is not of the correct format!'
+    Write-Error '-WwsVersion is not of the correct format!'
     exit 1
 }
 
 if ($PackagePatch -lt 0 -or $PackagePatch -gt 100) {
-    Write-Error 'PackagePatch is out of range!'
+    Write-Error '-PackagePatch is out of range!'
     exit 1
+}
+
+if ($LocalDryRun -and $PushTo -ne '') {
+    Write-Warning '-LocalDryRun specified; ignoring -PushTo'
+}
+
+Set-Location $PSScriptRoot/Endpoints
+
+$allEndpoints = Get-Content endpoints.json | ConvertFrom-Json
+
+if($null -eq $endpoints) {
+    $endpoints = $allEndpoints
+} elseif($endpoints.Length -eq 0) {
+    Write-Warning ('An empty array was specified for -Endpoints. ' `
+        + 'Remove the switch to generate all endpoints.')
+    exit
 }
 
 $packageVersion = "$WwsVersion.$PackagePatch"
@@ -38,22 +56,18 @@ $template = @"
 </Configuration>
 "@
 
-if($PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+if(!$LocalDryRun -and $PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
     $dotnetNugetOutputLines = dotnet nuget list source
     $indexInOuput = 1 + $dotnetNugetOutputLines.IndexOf(
         $dotnetNugetOutputLines.Where({ $_ -like "* $PushTo *" }))
     $serviceIndexUri = $dotnetNugetOutputLines[$indexInOuput].Trim()
 
-    $packageBaseUri = (Irm $serviceIndexUri).resources.Where(
+    $packageBaseUri = (Invoke-RestMethod $serviceIndexUri).resources.Where(
         {$_.'@type' -eq 'PackageBaseAddress/3.0.0'} ).'@id'
     if(!$?) { exit 1 }
 }
 
 dotnet tool restore
-
-Set-Location $PSScriptRoot/Endpoints
-
-$endpoints = Get-Content endpoints.json | ConvertFrom-Json
 
 if(Test-Path build) {
     Remove-Item -Force -Recurse build/*
@@ -62,9 +76,14 @@ if(Test-Path build) {
 }
 
 foreach($endpoint in $endpoints) {
+    if($endpoint -notin $allEndpoints) {
+        Write-Warning "$endpoint is not a valid endpoint name. Skipping..."
+        continue
+    }
+
     $packageName = "$root.Endpoints.$endpoint"
 
-    if($PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+    if(!$LocalDryRun -and $PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
         $packageLower = $packageName.ToLower()
 
         $packageUri = "$packageBaseUri$packageLower/$packageVersion/$packageLower.nuspec"
@@ -106,10 +125,10 @@ foreach($endpoint in $endpoints) {
     if(!$?) { exit 1 }
 
     dotnet pack -c Release -p:Version="$packageVersion" -p:Endpoint=$endpoint `
-        -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
+        -p:LocalDryRun=$LocalDryRun -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
-    if ($PushTo -ne '') {
+    if (!$LocalDryRun -and $PushTo -ne '') {
         $package = "$PSScriptRoot/out/$packageName.$packageVersion.nupkg"
 
         if ($ApiKey -ne '') {

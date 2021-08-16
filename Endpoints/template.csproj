@@ -26,7 +26,9 @@
     <!-- HACK it appears we MUST reference Core using a package reference
          instead of a project reference to ensure this assembly,
          not just the package, references the correct version -->
-    <PackageReference Include="WorkSharp.Wws.Core" Version="1.0.0"/>
+    <PackageReference Condition="!$(LocalDryRun)" Include="WorkSharp.Wws.Core" Version="1.0.0"/>
+
+    <ProjectReference Condition="$(LocalDryRun)" Include="../../../Core/WorkSharp.Wws.Core.csproj" />
 
     <None Include="../../../icon.png" Pack="true" PackagePath=""/>
   </ItemGroup>
