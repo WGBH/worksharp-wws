@@ -22,10 +22,11 @@ namespace WorkSharp.Wws
 
     public class {{this.name}}Client : WwsClient, I{{this.name}}Client
     {
+        const string Endpoint = "{{this.name}}";
         const string Version = "{{this.version}}";
 
         public {{this.name}}Client(Configuration configuration, HttpClient client = null)
-            : base(Version, configuration, client) { }
+            : base(Endpoint, Version, configuration, client) { }
 
         {{for oper in this.operations}}
         public {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request) =>

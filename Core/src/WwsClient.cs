@@ -37,19 +37,16 @@ namespace WorkSharp.Wws
         static readonly XNamespace Env = "http://schemas.xmlsoap.org/soap/envelope/";
         static readonly XNamespace Sec = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
-        readonly string _version;
         readonly Configuration _config;
         readonly HttpClient _client;
 
-        protected WwsClient(string version, Configuration config, HttpClient? client)
+        protected WwsClient(string endpoint, string version, Configuration config, HttpClient? client)
         {
-            _version = version;
-
             config.Validate();
             _config = config;
 
             _client = client ?? new HttpClient();
-            _client.BaseAddress = new Uri($"https://{config.Host}/ccx/service/{config.Tenant}/");
+            _client.BaseAddress = new Uri($"https://{config.Host}/ccx/service/{config.Tenant}/{endpoint}/{version}");
         }
 
         protected async Task<T> ExecuteAsync<T>(XTypedElement request) where T: XTypedElement =>
@@ -60,12 +57,9 @@ namespace WorkSharp.Wws
             if (request == null)
             throw new ArgumentNullException(nameof(request));
 
-            var namespaze = request.GetType().Namespace;
-            var endpoint = namespaze.Substring(namespaze.LastIndexOf('.') + 1);
-
             var fullRequest = BuildFullRequest(request);
 
-            return PostRequest(endpoint, fullRequest);
+            return PostRequest(fullRequest);
         }
 
         XDocument BuildFullRequest(XTypedElement request) =>
@@ -86,7 +80,7 @@ namespace WorkSharp.Wws
                 )
             );
 
-        async Task<XElement> PostRequest(string endpoint, XDocument fullRequest)
+        async Task<XElement> PostRequest(XDocument fullRequest)
         {
             HttpResponseMessage res;
 
@@ -97,7 +91,7 @@ namespace WorkSharp.Wws
                 writer.Flush();
                 reqStream.Position = 0;
 
-                res = await _client.PostAsync(endpoint + "/" + _version, new StreamContent(reqStream));
+                res = await _client.PostAsync(String.Empty, new StreamContent(reqStream));
             }
 
             if (res.Content.Headers.ContentType.MediaType == MediaTypeNames.Text.Xml)
