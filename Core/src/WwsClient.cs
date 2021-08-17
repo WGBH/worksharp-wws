@@ -50,7 +50,7 @@ namespace WorkSharp.Wws
         }
 
         protected async Task<T> ExecuteAsync<T>(XTypedElement request) where T: XTypedElement =>
-            (await ExecuteAsync(request)).ConvertTo<T>();
+            (await ExecuteAsync(request).ConfigureAwait(false)).ConvertTo<T>();
 
         protected Task<XElement> ExecuteAsync(XTypedElement request)
         {
@@ -91,14 +91,14 @@ namespace WorkSharp.Wws
                 writer.Flush();
                 reqStream.Position = 0;
 
-                res = await _client.PostAsync(String.Empty, new StreamContent(reqStream));
+                res = await _client.PostAsync(String.Empty, new StreamContent(reqStream)).ConfigureAwait(false);
             }
 
             if (res.Content.Headers.ContentType.MediaType == MediaTypeNames.Text.Xml)
             {
-                using (var resStream = await res.Content.ReadAsStreamAsync())
+                using (var resStream = await res.Content.ReadAsStreamAsync().ConfigureAwait(false))
                 {
-                    var resEnv = await XDocument.LoadAsync(resStream, default, default);
+                    var resEnv = await XDocument.LoadAsync(resStream, default, default).ConfigureAwait(false);
 
                     if (res.IsSuccessStatusCode)
                         return resEnv.Root.Element(Env + "Body").Elements().FirstOrDefault();
