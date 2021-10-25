@@ -8,6 +8,7 @@ param (
     [string]$WwsVersion,
     [Parameter(Mandatory = $true)]
     [int]$PackagePatch,
+    [string]$PreRelease,
     [string[]]$Endpoints,
     [int]$WarningLevel = 4,
     [string]$PushTo,
@@ -28,6 +29,12 @@ if ($PackagePatch -lt 0 -or $PackagePatch -gt 100) {
     exit 1
 }
 
+# match blank or groupings of letter/numbers/hyphen separated by periods
+if ($PreRelease -notmatch '^(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$') {
+    Write-Error '-PreRelease contains invalid characters!'
+    exit 1
+}
+
 if ($LocalDryRun -and $PushTo) {
     Write-Warning '-LocalDryRun specified; ignoring -PushTo'
 }
@@ -44,7 +51,7 @@ if($null -eq $endpoints) {
     exit
 }
 
-$packageVersion = "$WwsVersion.$PackagePatch"
+$packageVersion = "$WwsVersion.$PackagePatch" + (($PreRelease)? "-$PreRelease" : "")
 $root = 'WorkSharp.Wws'
 
 $template = @"
