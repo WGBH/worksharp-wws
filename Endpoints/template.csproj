@@ -7,6 +7,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
+    <Nullable>enable</Nullable>
 
     <Product>WorkSharp - Workday Web Services: $(Endpoint)</Product>
     <Title>$(Product)</Title>
@@ -26,7 +27,7 @@
     <!-- HACK it appears we MUST reference Core using a package reference
          instead of a project reference to ensure this assembly,
          not just the package, references the correct version -->
-    <PackageReference Condition="!$(LocalDryRun)" Include="WorkSharp.Wws.Core" Version="1.0.0"/>
+    <PackageReference Condition="!$(LocalDryRun)" Include="WorkSharp.Wws.Core" Version="1.1.0"/>
 
     <ProjectReference Condition="$(LocalDryRun)" Include="../../../Core/WorkSharp.Wws.Core.csproj" />
 

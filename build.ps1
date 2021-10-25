@@ -28,7 +28,7 @@ if ($PackagePatch -lt 0 -or $PackagePatch -gt 100) {
     exit 1
 }
 
-if ($LocalDryRun -and $PushTo -ne '') {
+if ($LocalDryRun -and $PushTo) {
     Write-Warning '-LocalDryRun specified; ignoring -PushTo'
 }
 
@@ -50,13 +50,14 @@ $root = 'WorkSharp.Wws'
 $template = @"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns="http://www.microsoft.com/xml/schema/linq">
+  <NullableReferences>true</NullableReferences>
   <Namespaces>
     <Namespace Schema="urn:com.workday/bsvc" Clr="$root.{0}" />
   </Namespaces>
 </Configuration>
 "@
 
-if(!$LocalDryRun -and $PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+if(!$LocalDryRun -and $PushTo -and $SkipComponentIfAlreadyPushed) {
     $dotnetNugetOutputLines = dotnet nuget list source
     $indexInOuput = 1 + $dotnetNugetOutputLines.IndexOf(
         $dotnetNugetOutputLines.Where({ $_ -like "* $PushTo *" }))
@@ -83,7 +84,7 @@ foreach($endpoint in $endpoints) {
 
     $packageName = "$root.Endpoints.$endpoint"
 
-    if(!$LocalDryRun -and $PushTo -ne '' -and $SkipComponentIfAlreadyPushed) {
+    if(!$LocalDryRun -and $PushTo -and $SkipComponentIfAlreadyPushed) {
         $packageLower = $packageName.ToLower()
 
         $packageUri = "$packageBaseUri$packageLower/$packageVersion/$packageLower.nuspec"
@@ -128,7 +129,7 @@ foreach($endpoint in $endpoints) {
         -p:LocalDryRun=$LocalDryRun -p:WarningLevel=$WarningLevel -o $PSScriptRoot/out
     if(!$?) { exit 1 }
 
-    if (!$LocalDryRun -and $PushTo -ne '') {
+    if (!$LocalDryRun -and $PushTo ) {
         $package = "$PSScriptRoot/out/$packageName.$packageVersion.nupkg"
 
         if ($ApiKey -ne '') {
