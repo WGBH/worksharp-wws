@@ -15,44 +15,48 @@ namespace WorkSharp.Wws.Builder
 {
     class Operation
     {
-        public string Name { get; }
-        public string Documentation { get; }
-        public string RequestType { get; }
-        public string? ResponseType { get; }
+        static string RemoveForbiddenChars(string value) =>
+            value.Replace("-", "").Replace(".", "");
+
+        readonly string _name;
+        readonly string _documentation;
+        readonly string _requestType;
+        readonly string? _responseType;
 
         public Operation(string name, string documentation, string requestType, string? responseType)
         {
-            Name = name;
-            Documentation = documentation;
-            RequestType = requestType;
-            ResponseType = responseType;
+            _name = name;
+            _documentation = documentation;
+            _requestType = requestType;
+            _responseType = responseType;
         }
 
-        public string DocumentationAsCsXmlDocComment => Documentation.Replace("\n", "\n///");
-        public string NameSafe => Name.Replace("-", "");
-        public string RequestTypeSafe => RequestType.Replace("-", "");
-        public string ResponseTypeSafe =>
-            ResponseType == null? "Task" : "Task<" + ResponseType.Replace("-", "") +">";
-        public string Method =>
-            ResponseType == null? "ExecuteAsync" : "ExecuteAsync<" + ResponseType.Replace("-", "") +">";
+        public string CsXmlDocComment => "///" + _documentation.Replace("\n", "\n///");
+        public string CsName => RemoveForbiddenChars(_name);
+        public string CsRequestType => RemoveForbiddenChars(_requestType);
+        public string ResponseTypeTask =>
+            _responseType == null? "Task" : "Task<" + RemoveForbiddenChars(_responseType) +">";
+        public string BaseMethod =>
+            _responseType == null? "ExecuteAsync" : "ExecuteAsync<" + RemoveForbiddenChars(_responseType) +">";
     }
 
     class Endpoint
     {
+        readonly string _documentation;
+
         public string Name { get; }
         public string Version { get; }
-        public string Documentation { get; }
         public IReadOnlyList<Operation> Operations { get; }
 
         public Endpoint(string name, string version, string documentation, IReadOnlyList<Operation> operations)
         {
             Name = name;
             Version = version;
-            Documentation = documentation;
+            _documentation = documentation;
             Operations = operations;
         }
 
-        public string DocumentationAsCsXmlDocComment => Documentation.Replace("\n", "\n///");
+        public string CsXmlDocComment => "///" + _documentation.Replace("\n", "\n///");
     }
 
     static class Program
@@ -66,7 +70,8 @@ namespace WorkSharp.Wws.Builder
 
             var template = await GetTemplateAsync();
 
-            var clientCode = template.Render(endpoint);
+            // pass an identity-style lambda as the member renamer so the name will remain unchanged
+            var clientCode = template.Render(endpoint, memberRenamer: member => member.Name);
 
             await File.WriteAllTextAsync(endpoint.Name + "Client.cs", clientCode);
 

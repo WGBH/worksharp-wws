@@ -3,34 +3,34 @@
 
 using System.Net.Http;
 using System.Threading.Tasks;
-using WorkSharp.Wws.{{this.name}};
+using WorkSharp.Wws.{{this.Name}};
 
 namespace WorkSharp.Wws
 {
     /// <summary>
-    /// {{this.documentation_as_cs_xml_doc_comment}}
+    {{this.CsXmlDocComment}}
     /// </summary>
-    public interface I{{this.name}}Client
+    public interface I{{this.Name}}Client
     {
-        {{for oper in this.operations}}
+        {{for oper in this.Operations}}
         /// <summary>
-        /// {{oper.documentation_as_cs_xml_doc_comment}}
+        {{oper.CsXmlDocComment}}
         /// </summary>
-        {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request);
+        {{oper.ResponseTypeTask}} {{oper.CsName}}Async({{oper.CsRequestType}} request);
         {{end}}
     }
 
-    public class {{this.name}}Client : WwsClient, I{{this.name}}Client
+    public class {{this.Name}}Client : WwsClient, I{{this.Name}}Client
     {
-        const string Endpoint = "{{this.name}}";
-        const string Version = "{{this.version}}";
+        const string Endpoint = "{{this.Name}}";
+        const string Version = "{{this.Version}}";
 
-        public {{this.name}}Client(Configuration configuration, HttpClient client = null)
+        public {{this.Name}}Client(Configuration configuration, HttpClient? client = null)
             : base(Endpoint, Version, configuration, client) { }
 
-        {{for oper in this.operations}}
-        public {{oper.response_type_safe}} {{oper.name_safe}}Async({{oper.request_type_safe}} request) =>
-            base.{{oper.method}}(request);
+        {{for oper in this.Operations}}
+        public {{oper.ResponseTypeTask}} {{oper.CsName}}Async({{oper.CsRequestType}} request) =>
+            base.{{oper.BaseMethod}}(request);
         {{end}}
     }
 }
