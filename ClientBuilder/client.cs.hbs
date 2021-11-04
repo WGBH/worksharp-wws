@@ -12,12 +12,12 @@ namespace WorkSharp.Wws
     /// </summary>
     public interface I{{this.Name}}Client
     {
-        {{for oper in this.Operations}}
+        {{#each this.Operations}}
         /// <summary>
-        {{oper.CsXmlDocComment}}
+        {{this.CsXmlDocComment}}
         /// </summary>
-        {{oper.ResponseTypeTask}} {{oper.CsName}}Async({{oper.CsRequestType}} request);
-        {{end}}
+        {{this.ResponseTypeTask}} {{this.CsName}}Async({{this.CsRequestType}} request);
+        {{/each}}
     }
 
     public class {{this.Name}}Client : WwsClient, I{{this.Name}}Client
@@ -28,9 +28,9 @@ namespace WorkSharp.Wws
         public {{this.Name}}Client(Configuration configuration, HttpClient? client = null)
             : base(Endpoint, Version, configuration, client) { }
 
-        {{for oper in this.Operations}}
-        public {{oper.ResponseTypeTask}} {{oper.CsName}}Async({{oper.CsRequestType}} request) =>
-            base.{{oper.BaseMethod}}(request);
-        {{end}}
+        {{#each this.Operations}}
+        public {{this.ResponseTypeTask}} {{this.CsName}}Async({{this.CsRequestType}} request) =>
+            base.{{this.BaseMethod}}(request);
+        {{/each}}
     }
 }

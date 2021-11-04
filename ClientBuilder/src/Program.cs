@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Scriban;
+using HandlebarsDotNet;
+
 using static WorkSharp.Wws.Builder.XHelper;
 
 namespace WorkSharp.Wws.Builder
@@ -70,8 +71,7 @@ namespace WorkSharp.Wws.Builder
 
             var template = await GetTemplateAsync();
 
-            // pass an identity-style lambda as the member renamer so the name will remain unchanged
-            var clientCode = template.Render(endpoint, memberRenamer: member => member.Name);
+            var clientCode = template(endpoint);
 
             await File.WriteAllTextAsync(endpoint.Name + "Client.cs", clientCode);
 
@@ -126,10 +126,15 @@ namespace WorkSharp.Wws.Builder
             return new Endpoint(endpointName, endpointVersion, endpointDoc, operations.ToImmutableList());
         }
 
-        static async Task<Template> GetTemplateAsync()
+        static async Task<HandlebarsTemplate<object, object>> GetTemplateAsync()
         {
-            var templateText = await File.ReadAllTextAsync(Path.Join(AppContext.BaseDirectory, "client.cs.template"));
-            return Template.Parse(templateText);
+            var templateText = await File.ReadAllTextAsync(Path.Join(AppContext.BaseDirectory, "client.cs.hbs"));
+            var config = new HandlebarsConfiguration
+            {
+                NoEscape = true,
+                ThrowOnUnresolvedBindingExpression = true
+            };
+            return Handlebars.Create(config).Compile(templateText);
         }
     }
 }

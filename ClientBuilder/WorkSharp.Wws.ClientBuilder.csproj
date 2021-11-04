@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Scriban" Version="4.0.1" />
+    <PackageReference Include="Handlebars.Net" Version="2.0.9" />
 
-    <Content Include="client.cs.template">
+    <Content Include="client.cs.hbs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
